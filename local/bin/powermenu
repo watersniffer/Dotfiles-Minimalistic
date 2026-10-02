@@ -1,0 +1,19 @@
+#!/bin/bash
+
+theme="$HOME/.config/powermenu.rasi"
+options=("Shutdown" "Reboot" "Lock" "Suspend" "Logout")
+
+chosen=$(printf '%s\n' "${options[@]}" | rofi -dmenu -p "Power" -theme "$theme")
+
+case "$chosen" in
+    "Shutdown") systemctl poweroff ;;
+    "Reboot")   systemctl reboot ;;
+    # hyprlock, since swaylock and swaylock-effects are uninstalled.
+    #
+    # Logout was `niri msg action quit skip-confirmation=true`, which did nothing
+    # at all in a Hyprland session -- the menu entry silently failed when chosen.
+    # Niri is now uninstalled as well.
+    "Lock")     hyprlock ;;
+    "Suspend")  systemctl suspend ;;
+    "Logout")   hyprctl dispatch exit ;;
+esac

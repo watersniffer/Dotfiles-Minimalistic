@@ -1,0 +1,55 @@
+#!/bin/bash
+# wallpaper-switcher -- open the wallpaper picker.
+#
+# Bound to Super+W. Opens matuwall on the wallpapers folder. Picking an image sets
+# it through awww, which is the whole of what happens: the theme is fixed, so
+# nothing needs regenerating afterwards.
+#
+# What used to be here
+# --------------------
+# This was theme-aware twice over. First it asked theme-apply which folder the
+# current palette named and opened that, so switching theme also switched which
+# pictures the picker offered. Later the wallpaper became the theme and a
+# theme-wallpaper-watch regenerated everything on each change. Both are gone; the
+# theme is a fixed palette and this just opens a folder.
+#
+# An argument is still accepted and used as the folder name, so
+#
+#     wallpaper-switcher "Tokyo Night"
+#
+# opens the picker on one theme's folder directly.
+
+set -uo pipefail
+
+WALL_ROOT="$HOME/Pictures/Wallpapers"
+
+folder=${1:-}
+
+# An absolute or relative path is taken as-is; anything else is a folder name under
+# the wallpapers root.
+if [[ -n $folder ]]; then
+    if [[ $folder == /* ]]; then
+        dir=$folder
+    else
+        dir="$WALL_ROOT/$folder"
+    fi
+else
+    dir=$WALL_ROOT
+fi
+
+if [[ ! -d $dir ]]; then
+    echo "wallpaper-switcher: '$dir' does not exist" >&2
+    exit 1
+fi
+
+images=$(find "$dir" -maxdepth 1 -type f \
+    \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.jpeg' \
+       -o -iname '*.webp' -o -iname '*.gif' -o -iname '*.avif' \) \
+    2>/dev/null | wc -l)
+
+if [[ $images -eq 0 ]]; then
+    echo "wallpaper-switcher: no images in $dir" >&2
+    exit 1
+fi
+
+exec matuwall --directory "$dir"
